@@ -1,24 +1,24 @@
-# 🌐 SkillSync: Smart Team & Project Buddy Finder
+# 🚀 SkillSync – Networking Platform
 
-SkillSync is an intelligent platform designed to revolutionize how students form project teams and find mentors. Instead of random group formation, SkillSync helps students connect based on **skills, interests, and goals**, creating stronger collaborations and better academic outcomes.
+![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
----
-
-## 🚀 Overview
-
-In academic environments, especially in engineering and design programs, teamwork is essential — yet most student teams are formed by chance rather than capability.  
-SkillSync solves this problem by offering a **centralized digital platform** for:
-
-- Finding teammates with complementary skills  
-- Connecting with mentors (faculty/seniors) for guidance  
-- Managing projects collaboratively in a single dashboard  
-
-The goal is to make collaboration **smart, data-driven, and impactful**.
+> **SkillSync** is a modern full-stack networking platform that helps students and developers  
+> **connect, collaborate, and build projects together**.
 
 ---
 
-## 🎯 Key Features
+## 🌐 Live Demo
+🚧 Coming Soon
 
+---
+
+## ✨ Features
+
+<<<<<<< HEAD
 ### 👤 Student Profiles
 Each student can create a **professional digital profile** similar to LinkedIn:
 - Personal information, education, and achievements  
@@ -59,18 +59,77 @@ Assistant Professor, Department of CSE, Graphic Era Deemed University, Dehradun
 - Anuj Kumar  
 - Anuj Dobhal
 - Shalini Uniyal  
+=======
+- 🔐 Authentication (Login / Signup)
+- 👤 Profile management with skills & photos
+- 🤝 Connect with developers & mentors
+- 💬 Real-time chat & notifications
+- 📁 Project collaboration & discovery
+- 📱 Fully responsive UI
+- ⚡ Fast & optimized performance
+>>>>>>> 33183647b892dd619dcc231665428badfb419e73
 
 ---
 
-## 💡 Vision
+## 🛠 Tech Stack
 
-SkillSync isn’t just a project — it’s a **movement toward smarter collaboration** in education.  
-By helping students find the right people to work with, SkillSync enables more innovation, stronger projects, and a truly connected academic community.
+**Frontend**
+- React + TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Vite
+
+**Backend**
+- Supabase (Auth, DB, Realtime, Storage)
 
 ---
 
+## 📂 Folder Structure
+
+SkillSync-Networking-Platform/
+├── src/
+│ ├── components/
+│ ├── pages/
+│ ├── hooks/
+│ ├── integrations/
+│ └── lib/
+├── public/
+├── supabase/
+│ └── migrations/
+├── package.json
+├── tailwind.config.ts
+├── vite.config.ts
+└── README.md
 
 
 ---
 
+## 🚀 Run Locally
+
+```bash
+git clone https://github.com/devanshrawat27/SkillSync-Networking-Platform.git
+cd SkillSync-Networking-Platform
+npm install
+npm run dev
+Open 👉 http://localhost:8080
+
+🔐 Environment Variables
+Create .env file:
+
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+📈 Learning Outcomes
+Full-stack architecture
+
+Real-time systems
+
+Authentication flows
+
+Scalable React structure
+
+Clean UI/UX practices
+
+👨‍💻 Author
+Devansh Rawat
+GitHub: https://github.com/devanshrawat27
 
