@@ -57,7 +57,7 @@ Assistant Professor, Department of CSE, Graphic Era Deemed University, Dehradun
 **Project Team Members:**
 - Devansh Rawat  
 - Anuj Kumar  
-- Vedant Devrani  
+- Anuj Dobhal
 - Shalini Uniyal  
 
 ---

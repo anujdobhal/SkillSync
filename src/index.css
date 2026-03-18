@@ -1,118 +1,315 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ============================================================
+   DESIGN SYSTEM - SkillSync Modern Dark Theme
+   ============================================================ */
 
 @layer base {
   :root {
-    /* Light, airy backgrounds */
-    --background: 220 40% 98%;
-    --foreground: 230 25% 20%;
-
-    /* Glass-effect cards */
-    --card: 0 0% 100%;
-    --card-foreground: 230 25% 20%;
-
-    /* Popover elements */
-    --popover: 0 0% 100%;
-    --popover-foreground: 230 25% 20%;
-
-    /* Primary - Soft Blue */
-    --primary: 215 85% 65%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 215 85% 75%;
-
-    /* Secondary - Teal/Cyan */
-    --secondary: 175 60% 60%;
-    --secondary-foreground: 0 0% 100%;
-
-    /* Muted soft grays */
-    --muted: 220 20% 95%;
-    --muted-foreground: 230 15% 50%;
-
-    /* Accent - Purple */
-    --accent: 270 70% 70%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Amber highlights */
-    --highlight: 45 95% 65%;
-    --highlight-foreground: 230 25% 20%;
-
-    /* Destructive states */
-    --destructive: 0 70% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Borders and inputs */
-    --border: 220 25% 88%;
-    --input: 220 25% 92%;
-    --ring: 215 85% 65%;
-
-    --radius: 0.75rem;
-
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(215 85% 65%), hsl(270 70% 70%));
-    --gradient-secondary: linear-gradient(135deg, hsl(175 60% 60%), hsl(215 85% 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(215 85% 70%) 0%, hsl(270 70% 75%) 50%, hsl(175 60% 65%) 100%);
+    /* Background Colors */
+    --bg-primary: #0A0E1A;
+    --bg-card: #111827;
+    --bg-elevated: #1A2035;
+    --border: #1F2937;
+    --border-light: #374151;
     
-    /* Glass effects */
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.3);
+    /* Brand Colors */
+    --primary: #4F46E5;     /* Indigo */
+    --primary-hover: #4338CA;
+    --primary-glow: rgba(79, 70, 229, 0.25);
+    --accent: #38BDF8;      /* Sky Blue */
     
-    /* Shadows */
-    --shadow-soft: 0 8px 32px rgba(107, 159, 238, 0.15);
-    --shadow-glow: 0 0 40px rgba(107, 159, 238, 0.3);
-    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
+    /* Semantic Colors */
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
+    
+    /* Text Colors */
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-muted: #4B5563;
+    
+    /* Spacing & Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-full: 9999px;
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
+  html {
+    @apply scroll-smooth;
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    border-color: var(--border);
   }
 }
+
+/* ============================================================
+   COMPONENT STYLES
+   ============================================================ */
+
+@layer components {
+  /* Cards & Surfaces */
+  .card {
+    @apply bg-[var(--bg-card)] border border-[var(--border)] rounded-[var(--radius-lg)];
+  }
+
+  .card-lg {
+    @apply card p-6 md:p-8;
+  }
+
+  .card-md {
+    @apply card p-4 md:p-6;
+  }
+
+  .card-sm {
+    @apply card p-3 md:p-4;
+  }
+
+  /* Shadows */
+  .shadow-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--border);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px var(--primary-glow);
+  }
+
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-lg border border-white/5;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply px-4 py-2 rounded-[8px] font-medium transition-all duration-200;
+    @apply flex items-center justify-center gap-2;
+  }
+
+  .btn-primary {
+    @apply btn bg-[var(--primary)] text-white;
+    @apply hover:bg-[#6D28D9] hover:shadow-lg;
+    @apply active:scale-[0.97];
+  }
+
+  .btn-primary-lg {
+    @apply btn-primary px-6 py-3 text-base;
+  }
+
+  .btn-secondary {
+    @apply btn bg-[var(--surface-2)] text-[var(--text-primary)];
+    @apply border border-[var(--border)] hover:border-[var(--primary)];
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-[var(--text-primary)];
+    @apply hover:bg-white/5 border border-transparent hover:border-[var(--border)];
+  }
+
+  .btn-icon {
+    @apply w-10 h-10 rounded-full flex items-center justify-center;
+    @apply hover:bg-white/10 transition-colors;
+  }
+
+  /* Input Fields */
+  .input {
+    @apply px-4 py-2.5 rounded-[8px] bg-[var(--surface)] border border-[var(--border)];
+    @apply text-[var(--text-primary)] placeholder-[var(--text-muted)];
+    @apply focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-glow)];
+    @apply transition-all duration-200;
+  }
+
+  .input-lg {
+    @apply input px-5 py-3 text-base;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    @apply bg-[var(--surface-2)] text-[var(--text-secondary)];
+  }
+
+  .badge-primary {
+    @apply badge bg-violet-950/50 text-violet-400;
+  }
+
+  .badge-success {
+    @apply badge bg-emerald-950/50 text-emerald-400;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-950/50 text-amber-400;
+  }
+
+  /* Skill Tag */
+  .skill-tag {
+    @apply inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium;
+    @apply bg-gradient-to-r border transition-all duration-200 cursor-pointer;
+  }
+
+  .skill-tag-violet {
+    @apply skill-tag from-violet-950 to-violet-900 border-violet-700 text-violet-400;
+  }
+
+  .skill-tag-blue {
+    @apply skill-tag from-blue-950 to-blue-900 border-blue-700 text-blue-400;
+  }
+
+  .skill-tag-cyan {
+    @apply skill-tag from-cyan-950 to-cyan-900 border-cyan-700 text-cyan-400;
+  }
+
+  /* Divider */
+  .divider {
+    @apply h-px bg-[var(--border)];
+  }
+
+  .divider-text {
+    @apply flex items-center gap-3 text-[var(--text-muted)] text-sm;
+  }
+
+  .divider-text::before,
+  .divider-text::after {
+    @apply flex-1 content-[''] bg-[var(--border)];
+    height: 1px;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS & KEYFRAMES
+   ============================================================ */
 
 @layer utilities {
-  .glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-card);
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
   }
 
-  .gradient-text {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow); }
+    50% { box-shadow: 0 0 0 10px transparent; }
   }
 
-  .floating {
-    animation: floating 3s ease-in-out infinite;
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
   }
 
-  @keyframes floating {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
+  @keyframes slide-in-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  .glow-hover {
-    transition: all 0.3s ease;
+  @keyframes slide-in-down {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  .glow-hover:hover {
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-2px);
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes bounce-in {
+    0% { opacity: 0; transform: scale(0.3) translateY(20px); }
+    50% { opacity: 1; }
+    100% { transform: scale(1) translateY(0); }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  .animate-slide-up {
+    animation: slide-in-up 0.5s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slide-in-down 0.5s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }
+
+/* ============================================================
+   SCROLLBAR STYLING
+   ============================================================ */
+
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-[var(--surface)];
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-[var(--surface-2)] rounded-full hover:bg-[var(--border)];
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.gradient-text {
+  @apply bg-gradient-to-r from-[var(--primary)] via-[var(--secondary)] to-[var(--accent)];
+  @apply bg-clip-text text-transparent;
+}
+
+.gradient-text-violet-cyan {
+  @apply bg-gradient-to-r from-[var(--primary)] to-[var(--accent)];
+  @apply bg-clip-text text-transparent;
+}
+
+.glow-primary {
+  @apply shadow-lg shadow-[var(--primary-glow)];
+}
+
+.hover-lift {
+  @apply transition-all duration-200 hover:shadow-xl hover:-translate-y-1;
+}
+
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)];
+}
+
+.truncate-1 {
+  @apply line-clamp-1;
+}
+
+.truncate-2 {
+  @apply line-clamp-2;
+}
+
+.truncate-3 {
+  @apply line-clamp-3;
+}
+
