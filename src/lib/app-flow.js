@@ -20,11 +20,5 @@ export async function getPostLoginRoute() {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return "/auth";
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("user_id", session.user.id)
-    .single();
-
-  return isProfileSetupComplete(profile) ? "/dashboard" : "/profile?setup=1";
+  return "/dashboard";
 }

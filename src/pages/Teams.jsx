@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AppLayout from '@/components/layouts/AppLayout';
 
 const Teams = () => {
   const navigate = useNavigate();
@@ -153,7 +154,8 @@ const Teams = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] lg:ml-60 p-6">
+    <AppLayout>
+      <div className="min-h-screen bg-[var(--bg-primary)] p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -270,7 +272,8 @@ const Teams = () => {
           </Tabs>
         )}
       </div>
-    </div>
+      </div>
+    </AppLayout>
   );
 };
 

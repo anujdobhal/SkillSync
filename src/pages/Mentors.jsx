@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AppLayout from "@/components/layouts/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,13 +55,10 @@ const Mentors = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen">
-      <Navbar />
-      
-      <section className="pt-32 pb-20 px-6">
+  const content = (
+    <>
+      <section className={currentUserId ? "py-10 px-6" : "pt-32 pb-20 px-6"}>
         <div className="container mx-auto">
-          {/* Header */}
           <div className="text-center mb-16 animate-slide-up">
             <h1 className="text-5xl font-bold mb-6">
               Connect with <span className="gradient-text">Mentors</span>
@@ -177,7 +175,17 @@ const Mentors = () => {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
       />
+    </>
+  );
 
+  if (currentUserId) {
+    return <AppLayout>{content}</AppLayout>;
+  }
+
+  return (
+    <div className="min-h-screen">
+      <Navbar />
+      {content}
       <Footer />
     </div>
   );

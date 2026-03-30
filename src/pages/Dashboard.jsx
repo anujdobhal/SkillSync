@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { getProfilePhotoUrl } from "@/lib/profile-photo";
 import AppLayout from "@/components/layouts/AppLayout";
-import { getProfileCompletionPercent, isProfileSetupComplete } from "@/lib/app-flow";
+import { getProfileCompletionPercent } from "@/lib/app-flow";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -84,11 +84,6 @@ const Dashboard = () => {
     if (error) {
       toast.error("Error loading profile");
       setLoading(false);
-      return;
-    }
-
-    if (!isProfileSetupComplete(data)) {
-      navigate("/profile?setup=1");
       return;
     }
 

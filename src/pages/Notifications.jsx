@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Bell, Check } from 'lucide-react';
+import AppLayout from '@/components/layouts/AppLayout';
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -88,8 +89,9 @@ const Notifications = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] lg:ml-60 p-6">
-      <div className="max-w-2xl mx-auto">
+    <AppLayout>
+      <div className="min-h-screen bg-[var(--bg-primary)] p-6">
+        <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 style={{ color: 'var(--text-primary)' }} className="text-3xl font-bold">Notifications</h1>
@@ -166,7 +168,8 @@ const Notifications = () => {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </AppLayout>
   );
 };
 
