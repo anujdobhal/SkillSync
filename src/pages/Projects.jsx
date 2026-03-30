@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import AppLayout from "@/components/layouts/AppLayout";
 
 const Projects = () => {
   const [userId, setUserId] = useState("");
@@ -75,11 +74,9 @@ const Projects = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-
-      <section className="pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-6xl">
+    <AppLayout>
+      <section className="p-6" style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
+        <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-4xl font-bold">Projects</h1>
@@ -118,9 +115,7 @@ const Projects = () => {
           </Tabs>
         </div>
       </section>
-
-      <Footer />
-    </div>
+    </AppLayout>
   );
 };
 

@@ -51,8 +51,10 @@ const App = () => (
             <Route path="/teams" element={<Teams />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/new-project" element={<NewProject />} />
+            <Route path="/projects/new" element={<NewProject />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/project/:id" element={<ProjectDetails />} />
+            <Route path="/projects/:id" element={<ProjectDetails />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatDrawer />

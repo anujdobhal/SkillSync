@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Bell, Check, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { getProfilePhotoUrl } from '@/lib/profile-photo';
+import { Bell, Check } from 'lucide-react';
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -23,6 +20,7 @@ const Notifications = () => {
       navigate('/auth');
       return;
     }
+
     setUser(session.user);
     loadNotifications(session.user.id);
   };
@@ -30,9 +28,9 @@ const Notifications = () => {
   const loadNotifications = async (userId) => {
     try {
       const { data, error } = await supabase
-        .from('connection_requests')
-        .select('*, sender:sender_id(name, profile_photo)')
-        .eq('receiver_id', userId)
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -44,81 +42,66 @@ const Notifications = () => {
     }
   };
 
-  const handleAccept = async (requestId, senderId) => {
-    try {
-      // Accept the connection request
-      const { error: updateError } = await supabase
-        .from('connection_requests')
-        .update({ status: 'accepted' })
-        .eq('id', requestId);
-
-      if (updateError) throw updateError;
-
-      // Create connection
-      const { error: createError } = await supabase
-        .from('connections')
-        .insert({
-          user_id: user.id,
-          connected_user_id: senderId,
-        });
-
-      if (createError && createError.code !== '23505') throw createError;
-
-      toast.success('Connection accepted!');
-      setNotifications(notifications.filter(n => n.id !== requestId));
-    } catch (error) {
-      console.error('Error accepting connection:', error);
-      toast.error('Failed to accept connection');
-    }
-  };
-
-  const handleDecline = async (requestId) => {
+  const handleMarkAsRead = async (notificationId, link) => {
     try {
       const { error } = await supabase
-        .from('connection_requests')
-        .update({ status: 'rejected' })
-        .eq('id', requestId);
-
-      if (error) throw error;
-
-      toast.success('Connection request declined');
-      setNotifications(notifications.filter(n => n.id !== requestId));
-    } catch (error) {
-      console.error('Error declining connection:', error);
-      toast.error('Failed to decline connection');
-    }
-  };
-
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      const { error } = await supabase
-        .from('connection_requests')
-        .update({ read: true })
+        .from('notifications')
+        .update({ is_read: true })
         .eq('id', notificationId);
 
       if (error) throw error;
+
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === notificationId
+            ? { ...notification, is_read: true }
+            : notification,
+        ),
+      );
+
+      if (link) {
+        navigate(link);
+      }
     } catch (error) {
       console.error('Error marking as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      if (error) throw error;
+
+      setNotifications((prev) =>
+        prev.map((notification) => ({ ...notification, is_read: true })),
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
     }
   };
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] lg:ml-60 p-6">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 style={{ color: 'var(--text-primary)' }} className="text-3xl font-bold">Notifications</h1>
-            <p style={{ color: 'var(--text-secondary)' }} className="text-sm mt-1">You're all caught up! 🎉</p>
+            <p style={{ color: 'var(--text-secondary)' }} className="text-sm mt-1">Your recent account activity appears here.</p>
           </div>
           {notifications.length > 0 && (
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleMarkAllAsRead}>
               Mark all as read
             </Button>
           )}
         </div>
 
-        {/* Notifications List */}
         <div className="space-y-3">
           {loading ? (
             <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
@@ -129,59 +112,55 @@ const Notifications = () => {
               <p style={{ color: 'var(--text-muted)' }} className="text-sm mt-2">When someone interacts with you, it will show up here</p>
             </div>
           ) : (
-            notifications.map(notif => (
+            notifications.map((notification) => (
               <div
-                key={notif.id}
+                key={notification.id}
                 style={{
                   backgroundColor: 'var(--bg-card)',
                   borderColor: 'var(--border)',
                 }}
-                className="border rounded-lg p-4 flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors"
+                className="border rounded-lg p-4 flex items-center justify-between hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer"
+                onClick={() => handleMarkAsRead(notification.id, notification.link)}
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={notif.sender?.profile_photo ? getProfilePhotoUrl(notif.sender.profile_photo) : undefined} />
-                    <AvatarFallback>{notif.sender?.name?.charAt(0) || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p style={{ color: 'var(--text-primary)' }} className="text-sm">
-                      <span className="font-semibold">{notif.sender?.name}</span> sent you a connection request
+                <div className="flex-1">
+                  <p style={{ color: 'var(--text-primary)' }} className="text-sm font-semibold">
+                    {notification.title}
+                  </p>
+                  {notification.message && (
+                    <p style={{ color: 'var(--text-secondary)' }} className="text-sm mt-1">
+                      {notification.message}
                     </p>
-                    <p style={{ color: 'var(--text-muted)' }} className="text-xs">
-                      {new Date(notif.created_at).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </p>
-                  </div>
+                  )}
+                  <p style={{ color: 'var(--text-muted)' }} className="text-xs mt-2">
+                    {new Date(notification.created_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
                 </div>
 
-                {notif.status === 'pending' ? (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleAccept(notif.id, notif.sender_id)}
-                      style={{ backgroundColor: 'var(--primary)', color: 'white' }}
-                      className="hover:opacity-90"
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDecline(notif.id)}
-                    >
-                      Decline
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-[var(--success)]" />
-                    <p style={{ color: 'var(--text-muted)' }} className="text-sm">Connected</p>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {notification.is_read ? (
+                    <p style={{ color: 'var(--text-muted)' }} className="text-sm">Read</p>
+                  ) : (
+                    <>
+                      <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMarkAsRead(notification.id, notification.link);
+                        }}
+                      >
+                        <Check className="w-4 h-4 mr-1" />
+                        Mark read
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             ))
           )}

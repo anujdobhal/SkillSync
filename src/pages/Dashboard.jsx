@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { getProfilePhotoUrl } from "@/lib/profile-photo";
 import AppLayout from "@/components/layouts/AppLayout";
+import { getProfileCompletionPercent, isProfileSetupComplete } from "@/lib/app-flow";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -83,6 +84,11 @@ const Dashboard = () => {
     if (error) {
       toast.error("Error loading profile");
       setLoading(false);
+      return;
+    }
+
+    if (!isProfileSetupComplete(data)) {
+      navigate("/profile?setup=1");
       return;
     }
 
@@ -344,14 +350,30 @@ const Dashboard = () => {
     );
   }
 
-  const profileCompleteness = profile
-    ? ((profile.name ? 1 : 0) + (profile.bio ? 1 : 0) + (profile.skills ? 1 : 0) + (profile.github_url ? 1 : 0)) / 4 * 100
-    : 0;
+  const profileCompleteness = getProfileCompletionPercent(profile);
 
   return (
     <AppLayout>
       <div className="p-6" style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
         <div className="max-w-2xl mx-auto space-y-6">
+          <div style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }} className="border rounded-lg p-5">
+            <h2 style={{ color: 'var(--text-primary)' }} className="text-xl font-semibold mb-2">What would you like to do first?</h2>
+            <p style={{ color: 'var(--text-secondary)' }} className="text-sm mb-4">
+              Start by discovering teammates, exploring projects, or checking pending connections.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={() => navigate("/find-teammates")} style={{ backgroundColor: 'var(--primary)', color: '#fff' }}>
+                Find Teammates
+              </Button>
+              <Button onClick={() => navigate("/projects")} variant="outline" style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                Explore Projects
+              </Button>
+              <Button onClick={() => navigate("/connections")} variant="outline" style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
+                View Connections
+              </Button>
+            </div>
+          </div>
+
           {/* Profile Completion Banner */}
           {profileCompleteness < 80 && (
             <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', borderColor: 'var(--warning)', borderWidth: '1px' }} 
@@ -510,7 +532,6 @@ const Dashboard = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeletePost(post.id)}
-                          disabled={isDeleting}
                           style={{ color: 'var(--error)' }}
                         >
                           Delete

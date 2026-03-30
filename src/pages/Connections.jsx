@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +10,7 @@ import { toast } from "sonner";
 import { useChat } from "@/components/chat/ChatContext";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { ProfileModal } from "@/components/ProfileModal";
+import AppLayout from "@/components/layouts/AppLayout";
 
 const Connections = () => {
   const navigate = useNavigate();
@@ -163,11 +162,9 @@ const Connections = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      
-      <div className="pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-6xl">
+    <AppLayout>
+      <div className="p-6" style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
+        <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-2">My Connections</h1>
             <p className="text-muted-foreground">Manage your network and connection requests</p>
@@ -377,9 +374,7 @@ const Connections = () => {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
       />
-
-      <Footer />
-    </div>
+    </AppLayout>
   );
 };
 

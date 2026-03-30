@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Check, UserPlus, X } from "lucide-react";
+import AppLayout from "@/components/layouts/AppLayout";
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -115,11 +114,9 @@ const ProjectDetails = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      
-      <div className="pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-6xl">
+    <AppLayout>
+      <div className="p-6" style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
+        <div className="max-w-6xl mx-auto">
           <Button variant="ghost" onClick={() => navigate("/projects")} className="mb-6">
             ← Back to Projects
           </Button>
@@ -224,9 +221,7 @@ const ProjectDetails = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
-    </div>
+    </AppLayout>
   );
 };
 

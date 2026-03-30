@@ -42,24 +42,37 @@ const Teams = () => {
 
   const loadTeams = async (userId) => {
     try {
-      // Load user's teams
-      const { data: teams, error } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('created_by', userId);
+      const [{ data: ownedProjects, error: ownedError }, { data: memberships, error: membershipError }, { data: publicProjects, error: publicError }] = await Promise.all([
+        supabase.from('projects').select('*').eq('creator_id', userId).order('created_at', { ascending: false }),
+        supabase.from('project_members').select('project_id, status').eq('user_id', userId).eq('status', 'accepted'),
+        supabase.from('projects').select('*').eq('is_public', true).neq('creator_id', userId).order('created_at', { ascending: false }).limit(10),
+      ]);
 
-      if (error) throw error;
-      setMyTeams(teams || []);
+      if (ownedError || membershipError || publicError) {
+        throw ownedError || membershipError || publicError;
+      }
 
-      // Load discovered teams (teams user hasn't joined)
-      const { data: allTeams, error: allError } = await supabase
-        .from('teams')
-        .select('*')
-        .neq('created_by', userId)
-        .limit(10);
+      const memberProjectIds = (memberships || []).map((membership) => membership.project_id);
+      let memberProjects = [];
 
-      if (allError) throw allError;
-      setDiscoveredTeams(allTeams || []);
+      if (memberProjectIds.length > 0) {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .in('id', memberProjectIds)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        memberProjects = data || [];
+      }
+
+      const joinedIds = new Set([
+        ...(ownedProjects || []).map((project) => project.id),
+        ...memberProjectIds,
+      ]);
+
+      setMyTeams([...(ownedProjects || []), ...memberProjects]);
+      setDiscoveredTeams((publicProjects || []).filter((project) => !joinedIds.has(project.id)));
     } catch (error) {
       console.error('Error loading teams:', error);
       toast.error('Failed to load teams');
@@ -76,13 +89,14 @@ const Teams = () => {
 
     try {
       const { error } = await supabase
-        .from('teams')
+        .from('projects')
         .insert({
-          name: formData.name,
+          title: formData.name,
           description: formData.description,
           domain: formData.domain,
-          skills_needed: formData.skills_needed,
-          created_by: user.id,
+          required_skills: formData.skills_needed,
+          creator_id: user.id,
+          is_public: true,
         });
 
       if (error) throw error;
@@ -101,7 +115,7 @@ const Teams = () => {
     <Card style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }} className="p-5 border hover:border-[var(--border-light)] transition-colors">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 style={{ color: 'var(--text-primary)' }} className="text-lg font-semibold">{team.name}</h3>
+          <h3 style={{ color: 'var(--text-primary)' }} className="text-lg font-semibold">{team.title}</h3>
           {team.domain && (
             <Badge style={{ backgroundColor: 'var(--primary)', color: 'white' }} className="mt-2">
               {team.domain}
@@ -110,9 +124,9 @@ const Teams = () => {
         </div>
       </div>
       <p style={{ color: 'var(--text-secondary)' }} className="text-sm mb-4 line-clamp-2">{team.description}</p>
-      {team.skills_needed && team.skills_needed.length > 0 && (
+      {team.required_skills && team.required_skills.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
-          {team.skills_needed.slice(0, 3).map((skill, idx) => (
+          {team.required_skills.slice(0, 3).map((skill, idx) => (
             <Badge
               key={idx}
               style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)' }}
@@ -121,9 +135,9 @@ const Teams = () => {
               {skill}
             </Badge>
           ))}
-          {team.skills_needed.length > 3 && (
+          {team.required_skills.length > 3 && (
             <Badge style={{ backgroundColor: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
-              +{team.skills_needed.length - 3}
+              +{team.required_skills.length - 3}
             </Badge>
           )}
         </div>
@@ -131,8 +145,9 @@ const Teams = () => {
       <Button
         variant="outline"
         className="w-full"
+        onClick={() => navigate(`/projects/${team.id}`)}
       >
-        {team.created_by === user?.id ? 'View Team' : 'Request to Join'}
+        {team.creator_id === user?.id ? 'View Team' : 'Request to Join'}
       </Button>
     </Card>
   );
@@ -140,7 +155,6 @@ const Teams = () => {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] lg:ml-60 p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 style={{ color: 'var(--text-primary)' }} className="text-3xl font-bold flex items-center gap-2">
@@ -214,7 +228,6 @@ const Teams = () => {
           </Dialog>
         </div>
 
-        {/* Tabs */}
         {loading ? (
           <p style={{ color: 'var(--text-muted)' }}>Loading teams...</p>
         ) : (
@@ -233,7 +246,7 @@ const Teams = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {myTeams.map(team => (
+                  {myTeams.map((team) => (
                     <TeamCard key={team.id} team={team} />
                   ))}
                 </div>
@@ -248,7 +261,7 @@ const Teams = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {discoveredTeams.map(team => (
+                  {discoveredTeams.map((team) => (
                     <TeamCard key={team.id} team={team} />
                   ))}
                 </div>

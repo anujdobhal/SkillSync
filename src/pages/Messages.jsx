@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import AppLayout from '@/components/layouts/AppLayout';
 import { getProfilePhotoUrl } from '@/lib/profile-photo';
 
 const Messages = () => {
@@ -117,7 +118,8 @@ const Messages = () => {
   };
 
   return (
-    <div className="h-screen flex bg-[var(--bg-primary)] lg:ml-60">
+    <AppLayout>
+      <div className="min-h-screen flex bg-[var(--bg-primary)]">
       {/* Conversations List */}
       <div style={{ backgroundColor: 'var(--bg-card)', borderRightColor: 'var(--border)' }} className="w-full lg:w-80 border-r flex flex-col">
         <div className="p-4 border-b border-[var(--border)]">
@@ -153,7 +155,7 @@ const Messages = () => {
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
-                    <AvatarImage src={conv.profile_photo ? getProfilePhotoUrl(conv.profile_photo) : undefined} />
+                    <AvatarImage src={conv.profile_photo || undefined} />
                     <AvatarFallback>{conv.name?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
@@ -176,7 +178,7 @@ const Messages = () => {
               {conversations.find(c => c.user_id === selectedConversation) && (
                 <div className="flex items-center gap-3">
                   <Avatar className="w-10 h-10">
-                    <AvatarImage src={conversations.find(c => c.user_id === selectedConversation)?.profile_photo ? getProfilePhotoUrl(conversations.find(c => c.user_id === selectedConversation).profile_photo) : undefined} />
+                    <AvatarImage src={conversations.find(c => c.user_id === selectedConversation)?.profile_photo || undefined} />
                     <AvatarFallback>{conversations.find(c => c.user_id === selectedConversation)?.name?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                   <p style={{ color: 'var(--text-primary)' }} className="font-semibold">{conversations.find(c => c.user_id === selectedConversation)?.name}</p>
@@ -231,7 +233,8 @@ const Messages = () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AppLayout>
   );
 };
 

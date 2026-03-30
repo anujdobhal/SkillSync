@@ -9,13 +9,13 @@ import {
   FolderOpen,
   GraduationCap,
   Bell,
-  Settings,
   LogOut,
 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getProfilePhotoUrl } from '@/lib/profile-photo';
+import { getProfileCompletionPercent } from '@/lib/app-flow';
 
 const SIDEBAR_BG = '#0D1120';
 const SIDEBAR_BORDER = '#1F2937';
@@ -71,11 +71,11 @@ const Sidebar = ({ onClose }) => {
   const navItems = [
     { label: 'Home', icon: LayoutDashboard, path: '/dashboard', badge: null },
     { label: 'Discover', icon: Search, path: '/find-teammates', badge: null },
-    { label: 'Messages', icon: MessageSquare, path: '/messages', badge: 'messages' },
-    { label: 'Connections', icon: Users, path: '/connections', badge: null },
-    { label: 'Teams', icon: UsersRound, path: '/teams', badge: null },
     { label: 'Projects', icon: FolderOpen, path: '/projects', badge: null },
+    { label: 'Connections', icon: Users, path: '/connections', badge: null },
+    { label: 'Messages', icon: MessageSquare, path: '/messages', badge: 'messages' },
     { label: 'Mentors', icon: GraduationCap, path: '/mentors', badge: null },
+    { label: 'Teams', icon: UsersRound, path: '/teams', badge: null },
     { label: 'Notifications', icon: Bell, path: '/notifications', badge: 'notifications' },
   ];
 
@@ -110,16 +110,7 @@ const Sidebar = ({ onClose }) => {
     );
   };
 
-  const profileCompletionPercent = profile
-    ? Math.round(
-        ((profile.name ? 1 : 0) +
-          (profile.bio ? 1 : 0) +
-          (profile.skills?.length ? 1 : 0) +
-          (profile.github_url ? 1 : 0)) /
-          4 *
-          100
-      )
-    : 0;
+  const profileCompletionPercent = Math.round(getProfileCompletionPercent(profile));
 
   return (
     <div
@@ -137,7 +128,7 @@ const Sidebar = ({ onClose }) => {
         >
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="w-10 h-10 flex-shrink-0">
-              <AvatarImage src={profile?.profile_photo ? getProfilePhotoUrl(profile.profile_photo) : undefined} />
+              <AvatarImage src={getProfilePhotoUrl(profile || {}, user?.id, user?.id) || undefined} />
               <AvatarFallback>{profile?.name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -179,22 +170,6 @@ const Sidebar = ({ onClose }) => {
 
       {/* Bottom Section */}
       <div className="p-4 border-t border-[var(--border)] space-y-2">
-        <button
-          onClick={() => {
-            navigate('/settings');
-            onClose?.();
-          }}
-          style={{
-            backgroundColor: isActive('/settings') ? PRIMARY_GLOW : 'transparent',
-            color: isActive('/settings') ? TEXT_PRIMARY : TEXT_SECONDARY,
-            borderLeftColor: isActive('/settings') ? PRIMARY : 'transparent',
-          }}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 border-l-[3px] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
-        >
-          <Settings className="w-5 h-5" />
-          <span className="text-sm font-medium">Settings</span>
-        </button>
-
         <button
           onClick={handleLogout}
           style={{ color: TEXT_SECONDARY }}

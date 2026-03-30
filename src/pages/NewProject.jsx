@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SkillsInput from "@/components/SkillsInput";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import AppLayout from "@/components/layouts/AppLayout";
 
 const NewProject = () => {
   const navigate = useNavigate();
@@ -66,11 +65,9 @@ const NewProject = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-
-      <section className="pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-3xl">
+    <AppLayout>
+      <section className="p-6" style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
+        <div className="max-w-3xl mx-auto">
           <Card className="glass-card p-8">
             <h1 className="text-3xl font-bold mb-6">Create New Project</h1>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -147,9 +144,7 @@ const NewProject = () => {
           </Card>
         </div>
       </section>
-
-      <Footer />
-    </div>
+    </AppLayout>
   );
 };
 

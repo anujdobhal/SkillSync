@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Users, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getPostLoginRoute } from "@/lib/app-flow";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -20,16 +21,16 @@ const Auth = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        navigate("/dashboard");
+        navigate(await getPostLoginRoute());
       }
     });
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
-        navigate("/dashboard");
+        navigate(await getPostLoginRoute());
       }
     });
 

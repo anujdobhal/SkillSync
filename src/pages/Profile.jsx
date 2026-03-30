@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import AppLayout from "@/components/layouts/AppLayout";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [connectionsCount, setConnectionsCount] = useState(0);
@@ -185,6 +186,10 @@ const Profile = () => {
     }
 
     toast.success("Profile updated successfully!");
+    if (searchParams.get("setup") === "1") {
+      navigate("/dashboard");
+      return;
+    }
     setSaving(false);
   };
 
@@ -222,10 +227,12 @@ const Profile = () => {
           {/* Header */}
           <div>
             <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-              Edit Profile
+              {searchParams.get("setup") === "1" ? "Complete Your Profile" : "Edit Profile"}
             </h1>
             <p style={{ color: 'var(--text-secondary)' }} className="text-sm mb-4">
-              Update your information to help teammates find you
+              {searchParams.get("setup") === "1"
+                ? "Finish your basic details first so discovery, projects, and matching work properly."
+                : "Update your information to help teammates find you"}
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               <Badge style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', borderColor: 'var(--primary)', borderWidth: '1px', color: 'var(--primary)' }} className="flex items-center gap-1">

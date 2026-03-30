@@ -1,14 +1,12 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, Sparkles, LogOut, User, MoreHorizontal } from "lucide-react";
+import { Users, Sparkles, LogOut, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Notifications from "./Notifications";
 import { useChat } from "@/components/chat/ChatContext";
 import { MessageCircle } from "lucide-react";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-
 const Navbar = ({ isScrolled }) => {
   const [user, setUser] = useState(null);
 
@@ -44,7 +42,7 @@ const Navbar = ({ isScrolled }) => {
     >
       <div className="h-full px-6 flex items-center justify-between max-w-full">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity">
+        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity">
           <div style={{ backgroundColor: 'var(--primary)' }} className="w-10 h-10 rounded-lg flex items-center justify-center">
             <Users className="w-6 h-6 text-white" />
           </div>
@@ -53,11 +51,26 @@ const Navbar = ({ isScrolled }) => {
 
         {/* Navigation Links */}
         <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
-          <Link to="/" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium hover:text-[var(--text-primary)] transition-colors">
-            Home
-          </Link>
-          {!user && (
+          {user ? (
             <>
+              <Link to="/dashboard" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium hover:text-[var(--text-primary)] transition-colors">
+                Dashboard
+              </Link>
+              <Link to="/find-teammates" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium hover:text-[var(--text-primary)] transition-colors">
+                Discover
+              </Link>
+              <Link to="/projects" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium hover:text-[var(--text-primary)] transition-colors">
+                Projects
+              </Link>
+              <Link to="/connections" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium hover:text-[var(--text-primary)] transition-colors">
+                Connections
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium hover:text-[var(--text-primary)] transition-colors">
+                Home
+              </Link>
               <Link to="/features" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium hover:text-[var(--text-primary)] transition-colors">
                 Features
               </Link>

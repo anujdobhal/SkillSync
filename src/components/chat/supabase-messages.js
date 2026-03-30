@@ -5,7 +5,7 @@ export async function tryLoadConversationFromDb(userA, userB) {
   try {
     const { data, error } = await supabase
       .from("messages")
-      .select("id,sender_id,receiver_id,text,created_at,is_read")
+      .select("id,sender_id,receiver_id,content,created_at,is_read")
       .or(`and(sender_id.eq.${userA},receiver_id.eq.${userB}),and(sender_id.eq.${userB},receiver_id.eq.${userA})`)
       .order("created_at", { ascending: true });
     if (error) return null;
@@ -25,7 +25,7 @@ export async function tryInsertMessageToDb(msg, currentUserId) {
       id: msg.id,
       sender_id: msg.senderId,
       receiver_id: msg.receiverId,
-      text: msg.text,
+      content: msg.text,
       created_at: new Date(msg.timestamp).toISOString(),
       is_read: isRead,
     });
@@ -128,7 +128,7 @@ function toChatMessage(row) {
     id: row.id,
     senderId: row.sender_id,
     receiverId: row.receiver_id,
-    text: row.text,
+    text: row.content,
     timestamp: Date.parse(row.created_at),
     status: "sent",
   };
