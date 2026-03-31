@@ -1,0 +1,19 @@
+{
+  "name": "skillsync",
+  "version": "1.0.0",
+  "description": "Smart Team Builder for Students",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && node server.js",
+    "client": "cd frontend && npm run dev",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "mongoose": "^9.3.3"
+  }
+}

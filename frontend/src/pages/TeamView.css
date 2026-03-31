@@ -1,0 +1,196 @@
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.team-alert-banner {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.request-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+.create-team-form {
+  margin-bottom: 2rem;
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.filter-panel {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr auto;
+  gap: 0.75rem;
+}
+
+.filter-row input,
+.filter-row select {
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  padding: 0.85rem;
+  background: rgba(255,255,255,0.95);
+  color: #111827;
+}
+
+.btn-small {
+  padding: 0.6rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.create-team-form h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.mb-2 {
+  margin-bottom: 2rem;
+}
+
+.team-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.team-card-header h2 {
+  font-size: 1.25rem;
+  color: white;
+}
+
+.team-desc {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  flex-grow: 1;
+}
+
+.team-meta {
+  background: rgba(15, 23, 42, 0.4);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+.team-meta strong {
+  color: var(--text-main);
+}
+
+.team-meta p {
+  margin-bottom: 0.4rem;
+}
+
+.team-members h4 {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.member-avatars {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.member-tooltip {
+  cursor: help;
+}
+
+.request-panel {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.request-panel h4 {
+  margin: 0 0 0.75rem;
+}
+
+.request-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.9rem;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  margin-bottom: 0.75rem;
+}
+
+.request-card:last-child {
+  margin-bottom: 0;
+}
+
+.request-note {
+  color: #4b5563;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.request-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-small {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.joined-badge {
+  text-align: center;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--secondary);
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.btn-secondary.w-full {
+  text-align: center;
+  display: block;
+  cursor: pointer;
+}
