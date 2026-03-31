@@ -15,6 +15,39 @@ export async function tryLoadConversationFromDb(userA, userB) {
   }
 }
 
+export async function loadConversationSummariesFromDb(currentUserId) {
+  try {
+    const { data, error } = await supabase
+      .from("messages")
+      .select("id,sender_id,receiver_id,content,created_at,is_read")
+      .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
+      .order("created_at", { ascending: false });
+
+    if (error || !data) return [];
+
+    const seen = new Set();
+    const summaries = [];
+
+    for (const row of data) {
+      const otherUserId = row.sender_id === currentUserId ? row.receiver_id : row.sender_id;
+      const conversationId = getConversationId(currentUserId, otherUserId);
+
+      if (seen.has(conversationId)) continue;
+      seen.add(conversationId);
+
+      summaries.push({
+        conversationId,
+        otherUserId,
+        lastMessage: toChatMessage(row),
+      });
+    }
+
+    return summaries;
+  } catch {
+    return [];
+  }
+}
+
 export async function tryInsertMessageToDb(msg, currentUserId) {
   try {
     // Set is_read = false for receiver (new unread message)

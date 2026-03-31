@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { getProfilePhotoUrl } from "@/lib/profile-photo";
 import AppLayout from "@/components/layouts/AppLayout";
 import { getProfileCompletionPercent } from "@/lib/app-flow";
+import { ProfileModal } from "@/components/ProfileModal";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ const Dashboard = () => {
   const fileInputRef = useRef(null);
   const [likedPosts, setLikedPosts] = useState(new Set());
   const [postLikes, setPostLikes] = useState({});
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -112,7 +115,7 @@ const Dashboard = () => {
       const userIds = [...new Set(postsData.map(post => post.user_id))];
       const { data: profilesData } = await supabase
         .from("profiles")
-        .select("user_id, name, email, profile_photo_url, profile_photo_visible, hide_photo")
+        .select("*")
         .in("user_id", userIds);
 
       const profileMap = new Map();
@@ -123,13 +126,18 @@ const Dashboard = () => {
       const transformedPosts = postsData.map(post => {
         try {
           const profileData = profileMap.get(post.user_id);
+          const isOwnPost = post.user_id === currentUserId;
           let displayName = "";
-          if (profileData && profileData.name && profileData.name.trim()) {
+          if (isOwnPost && profile?.name?.trim()) {
+            displayName = profile.name.trim();
+          } else if (profileData && profileData.name && profileData.name.trim()) {
             displayName = profileData.name.trim();
           } else if (profileData && profileData.email) {
             displayName = profileData.email.split('@')[0];
+          } else if (isOwnPost && profile?.email) {
+            displayName = profile.email.split('@')[0];
           } else {
-            displayName = `User ${post.user_id.slice(-8)}`;
+            displayName = "SkillSync User";
           }
           
           return {
@@ -139,15 +147,46 @@ const Dashboard = () => {
             image_url: post.image_url || null,
             created_at: post.created_at,
             profile: profileData ? {
+              user_id: post.user_id,
               name: displayName,
               profile_photo: getProfilePhotoUrl(profileData, currentUserId, post.user_id),
               profile_photo_url: profileData.profile_photo_url,
               profile_photo_visible: profileData.profile_photo_visible,
               hide_photo: profileData.hide_photo,
               email: profileData.email,
+              department: profileData.department,
+              year: profileData.year,
+              bio: profileData.bio,
+              domain: profileData.domain,
+              skills: profileData.skills,
+              interests: profileData.interests,
+              github_url: profileData.github_url,
+              linkedin_url: profileData.linkedin_url,
+              leetcode_url: profileData.leetcode_url,
+              is_mentor: profileData.is_mentor,
+              mentor_expertise: profileData.mentor_expertise,
+              mentor_bio: profileData.mentor_bio,
+              mentor_linkedin: profileData.mentor_linkedin,
+              years_experience: profileData.years_experience,
             } : {
+              user_id: post.user_id,
               name: displayName,
               profile_photo: null,
+              email: isOwnPost ? profile?.email : null,
+              department: isOwnPost ? profile?.department : null,
+              year: isOwnPost ? profile?.year : null,
+              bio: isOwnPost ? profile?.bio : null,
+              domain: isOwnPost ? profile?.domain : null,
+              skills: isOwnPost ? profile?.skills || [] : [],
+              interests: isOwnPost ? profile?.interests || [] : [],
+              github_url: isOwnPost ? profile?.github_url : null,
+              linkedin_url: isOwnPost ? profile?.linkedin_url : null,
+              leetcode_url: isOwnPost ? profile?.leetcode_url : null,
+              is_mentor: isOwnPost ? profile?.is_mentor : false,
+              mentor_expertise: isOwnPost ? profile?.mentor_expertise || [] : [],
+              mentor_bio: isOwnPost ? profile?.mentor_bio : null,
+              mentor_linkedin: isOwnPost ? profile?.mentor_linkedin : null,
+              years_experience: isOwnPost ? profile?.years_experience : null,
             },
           };
         } catch (error) {
@@ -159,8 +198,15 @@ const Dashboard = () => {
             image_url: post.image_url || null,
             created_at: post.created_at,
             profile: {
-              name: `User ${post.user_id.slice(-8)}`,
-              profile_photo: null
+              user_id: post.user_id,
+              name: post.user_id === currentUserId ? (profile?.name || "You") : "SkillSync User",
+              profile_photo: null,
+              email: post.user_id === currentUserId ? profile?.email : null,
+              department: post.user_id === currentUserId ? profile?.department : null,
+              year: post.user_id === currentUserId ? profile?.year : null,
+              bio: post.user_id === currentUserId ? profile?.bio : null,
+              domain: post.user_id === currentUserId ? profile?.domain : null,
+              skills: post.user_id === currentUserId ? profile?.skills || [] : [],
             },
           };
         }
@@ -347,6 +393,12 @@ const Dashboard = () => {
 
   const profileCompleteness = getProfileCompletionPercent(profile);
 
+  const openProfileCard = (postProfile) => {
+    if (!postProfile?.user_id) return;
+    setSelectedProfile(postProfile);
+    setIsProfileModalOpen(true);
+  };
+
   return (
     <AppLayout>
       <div className="p-6" style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh' }}>
@@ -369,10 +421,8 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Profile Completion Banner */}
           {profileCompleteness < 80 && (
-            <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', borderColor: 'var(--warning)', borderWidth: '1px' }} 
-                 className="rounded-lg p-4">
+            <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', borderColor: 'var(--warning)', borderWidth: '1px' }} className="rounded-lg p-4">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Complete Your Profile</h3>
@@ -380,49 +430,30 @@ const Dashboard = () => {
                     Complete your profile to increase visibility and stand out to mentors and teammates.
                   </p>
                   <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-                    <div 
-                      className="h-full rounded-full transition-all" 
-                      style={{ width: `${profileCompleteness}%`, backgroundColor: 'var(--warning)' }}
-                    ></div>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${profileCompleteness}%`, backgroundColor: 'var(--warning)' }}></div>
                   </div>
                   <p style={{ color: 'var(--text-muted)' }} className="text-xs">{Math.round(profileCompleteness)}% complete</p>
                 </div>
-                <Button 
-                  onClick={() => navigate("/profile")}
-                  size="sm"
-                  style={{ backgroundColor: 'var(--warning)', color: '#000' }}
-                  className="ml-4 whitespace-nowrap"
-                >
+                <Button onClick={() => navigate("/profile")} size="sm" style={{ backgroundColor: 'var(--warning)', color: '#000' }} className="ml-4 whitespace-nowrap">
                   Complete Now
                 </Button>
               </div>
             </div>
           )}
 
-          {/* Create Post Box */}
           <div style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }} className="border rounded-lg p-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage 
-                  src={profile && getProfilePhotoUrl(profile, currentUserId, currentUserId)} 
-                  alt={profile?.name}
-                />
+                <AvatarImage src={profile && getProfilePhotoUrl(profile, currentUserId, currentUserId)} alt={profile?.name} />
                 <AvatarFallback>{profile?.name?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                 <DialogTrigger asChild>
-                  <Button 
-                    variant="ghost"
-                    className="flex-1 justify-start text-left"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
+                  <Button variant="ghost" className="flex-1 justify-start text-left" style={{ color: 'var(--text-secondary)' }}>
                     Share what's on your mind...
                   </Button>
                 </DialogTrigger>
-                <DialogContent 
-                  className="sm:max-w-[600px]"
-                  style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}
-                >
+                <DialogContent className="sm:max-w-[600px]" style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <DialogHeader>
                     <DialogTitle style={{ color: 'var(--text-primary)' }}>Create a Post</DialogTitle>
                   </DialogHeader>
@@ -436,46 +467,19 @@ const Dashboard = () => {
                     />
                     {postImagePreview && (
                       <div className="relative">
-                        <img 
-                          src={postImagePreview} 
-                          alt="Preview" 
-                          className="w-full rounded-lg max-h-[300px] object-cover"
-                        />
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2"
-                          onClick={() => removeImage()}
-                        >
+                        <img src={postImagePreview} alt="Preview" className="w-full rounded-lg max-h-[300px] object-cover" />
+                        <Button variant="destructive" size="icon" className="absolute top-2 right-2" onClick={() => removeImage()}>
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
                     )}
                     <div className="flex items-center justify-between">
-                      <Button 
-                        variant="outline"
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isPosting}
-                        style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
-                      >
+                      <Button variant="outline" type="button" onClick={() => fileInputRef.current?.click()} disabled={isPosting} style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
                         <ImageIcon className="h-4 w-4 mr-2" />
                         Add Image
                       </Button>
-                      <input
-                        ref={fileInputRef}
-                        id="image-upload"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageSelect}
-                        disabled={isPosting}
-                      />
-                      <Button 
-                        onClick={handlePostSubmit}
-                        disabled={isPosting || !postContent.trim()}
-                        style={{ backgroundColor: 'var(--primary)', color: '#fff' }}
-                      >
+                      <input ref={fileInputRef} id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleImageSelect} disabled={isPosting} />
+                      <Button onClick={handlePostSubmit} disabled={isPosting || !postContent.trim()} style={{ backgroundColor: 'var(--primary)', color: '#fff' }}>
                         {isPosting ? "Posting..." : "Post"}
                       </Button>
                     </div>
@@ -485,12 +489,8 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Posts Feed */}
           {posts.length === 0 ? (
-            <div 
-              style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }} 
-              className="border rounded-lg p-8 text-center"
-            >
+            <div style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }} className="border rounded-lg p-8 text-center">
               <AlertCircle className="h-12 w-12 mx-auto mb-3 opacity-50" style={{ color: 'var(--text-muted)' }} />
               <p style={{ color: 'var(--text-muted)' }}>No posts yet. Be the first to share something!</p>
             </div>
@@ -499,49 +499,70 @@ const Dashboard = () => {
               {posts.map((post) => {
                 const isLiked = likedPosts.has(post.id);
                 const likesCount = postLikes[post.id] || 0;
-                
+                const isOwnPost = post.user_id === currentUserId;
+
                 return (
-                  <div 
-                    key={post.id} 
-                    style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }} 
-                    className="border rounded-lg p-5"
-                  >
+                  <div key={post.id} style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }} className="border rounded-lg p-5">
                     <div className="flex items-start gap-3 mb-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage 
-                          src={post.profile?.profile_photo}
-                          alt={post.profile?.name}
-                        />
-                        <AvatarFallback>{post.profile?.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                          {post.profile?.name}
+                      <button
+                        type="button"
+                        onClick={() => openProfileCard(post.profile)}
+                        className="flex flex-1 items-start gap-3 text-left"
+                      >
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={post.profile?.profile_photo} alt={post.profile?.name} />
+                          <AvatarFallback>{post.profile?.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                              {isOwnPost ? "You" : post.profile?.name}
+                            </div>
+                            {isOwnPost && (
+                              <Badge style={{ backgroundColor: 'rgba(79, 70, 229, 0.12)', color: 'var(--primary)' }}>
+                                Your Post
+                              </Badge>
+                            )}
+                          </div>
+                          {!isOwnPost && post.profile?.department && (
+                            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                              {post.profile.department}
+                            </div>
+                          )}
+                          {isOwnPost && (
+                            <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                              Posted from your account
+                            </div>
+                          )}
+                          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                            {formatTimeAgo(post.created_at)}
+                          </div>
                         </div>
-                        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                          {formatTimeAgo(post.created_at)}
-                        </div>
-                      </div>
-                      {post.user_id === currentUserId && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeletePost(post.id)}
-                          style={{ color: 'var(--error)' }}
-                        >
+                      </button>
+                      {isOwnPost && (
+                        <Button variant="ghost" size="sm" onClick={() => handleDeletePost(post.id)} style={{ color: 'var(--error)' }}>
                           Delete
                         </Button>
                       )}
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => openProfileCard(post.profile)}
+                      className="mb-3 text-xs underline-offset-4 hover:underline"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      View author profile
+                    </button>
 
                     <p style={{ color: 'var(--text-primary)' }} className="text-sm whitespace-pre-wrap mb-3">
                       {post.content}
                     </p>
 
                     {post.image_url && (
-                      <img 
-                        src={post.image_url} 
-                        alt="Post" 
+                      <img
+                        src={post.image_url}
+                        alt="Post"
                         className="w-full rounded-lg max-h-[400px] object-cover mb-3"
                         onError={(e) => {
                           console.error("Failed to load post image:", post.image_url);
@@ -550,10 +571,7 @@ const Dashboard = () => {
                       />
                     )}
 
-                    <div 
-                      className="flex items-center gap-4 pt-3"
-                      style={{ borderTopColor: 'var(--border)', borderTopWidth: '1px' }}
-                    >
+                    <div className="flex items-center gap-4 pt-3" style={{ borderTopColor: 'var(--border)', borderTopWidth: '1px' }}>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -561,19 +579,11 @@ const Dashboard = () => {
                         onClick={() => handleLike(post.id)}
                         style={{ color: isLiked ? 'var(--error)' : 'var(--text-secondary)' }}
                       >
-                        <Heart 
-                          className="h-4 w-4"
-                          fill={isLiked ? 'currentColor' : 'none'}
-                        />
+                        <Heart className="h-4 w-4" fill={isLiked ? 'currentColor' : 'none'} />
                         <span className="text-xs">{likesCount}</span>
                       </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center gap-2"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
+
+                      <Button variant="ghost" size="sm" className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
                         <MessageCircle className="h-4 w-4" />
                         <span className="text-xs">Comment</span>
                       </Button>
@@ -585,6 +595,13 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      <ProfileModal
+        profile={selectedProfile}
+        currentUserId={currentUserId}
+        open={isProfileModalOpen}
+        onOpenChange={setIsProfileModalOpen}
+      />
     </AppLayout>
   );
 };

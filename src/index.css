@@ -10,6 +10,28 @@
 
 @layer base {
   :root {
+    /* shadcn / Tailwind semantic tokens */
+    --background: #0A0E1A;
+    --foreground: #F1F5F9;
+    --card: #111827;
+    --card-foreground: #F1F5F9;
+    --popover: #111827;
+    --popover-foreground: #F1F5F9;
+    --primary-foreground: #FFFFFF;
+    --secondary: #1A2035;
+    --secondary-foreground: #F1F5F9;
+    --muted: #1A2035;
+    --muted-foreground: #94A3B8;
+    --accent-foreground: #08111F;
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+    --highlight: #F59E0B;
+    --highlight-foreground: #111827;
+    --input: #1A2035;
+    --ring: #4F46E5;
+    --surface: #111827;
+    --surface-2: #1A2035;
+
     /* Background Colors */
     --bg-primary: #0A0E1A;
     --bg-card: #111827;
@@ -312,4 +334,3 @@
 .truncate-3 {
   @apply line-clamp-3;
 }
-

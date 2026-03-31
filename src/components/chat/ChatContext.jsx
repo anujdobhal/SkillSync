@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getConversationId } from "./types";
 import { appendMessage, emitTyping, loadConversation, markAllRead, onBroadcast, deleteMessage } from "./storage";
 import { toast } from "sonner";
-import { subscribeMessagesRealtime, tryInsertMessageToDb, tryLoadConversationFromDb, markConversationAsRead, getUnreadCounts, deleteMessageFromDb } from "./supabase-messages";
+import { subscribeMessagesRealtime, tryInsertMessageToDb, tryLoadConversationFromDb, markConversationAsRead, getUnreadCounts, deleteMessageFromDb, loadConversationSummariesFromDb } from "./supabase-messages";
 
 const ChatContext = createContext(undefined);
 
@@ -12,6 +12,7 @@ export function ChatProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [openWithUserId, setOpenWithUserId] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [dbConversations, setDbConversations] = useState([]);
   const [unreadMap, setUnreadMap] = useState({});
   const [typingMap, setTypingMap] = useState({});
 
@@ -100,6 +101,26 @@ export function ChatProvider({ children }) {
     return () => { isCancelled = true; };
   }, [currentUserId]);
 
+  useEffect(() => {
+    if (!currentUserId) {
+      setDbConversations([]);
+      return;
+    }
+
+    let isCancelled = false;
+    const loadConversationSummaries = async () => {
+      const summaries = await loadConversationSummariesFromDb(currentUserId);
+      if (!isCancelled) {
+        setDbConversations(summaries);
+      }
+    };
+
+    loadConversationSummaries();
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUserId, messages, unreadMap]);
+
   // Supabase realtime subscription for INSERTs
   useEffect(() => {
     const off = subscribeMessagesRealtime((message) => {
@@ -114,6 +135,7 @@ export function ChatProvider({ children }) {
         setUnreadMap((m) => ({ ...m, [conversationId]: (m[conversationId] || 0) + 1 }));
         notifyIncoming(message);
       }
+      loadConversationSummariesFromDb(currentUserId).then(setDbConversations).catch(() => {});
     }, currentUserId);
     return off;
   }, [currentUserId, activeConversationId]);
@@ -175,29 +197,13 @@ export function ChatProvider({ children }) {
   // Compute conversation summaries from storage on demand
   const conversations = useMemo(() => {
     if (!currentUserId) return [];
-    try {
-      const raw = localStorage.getItem("skillSync.chat.messages");
-      const all = raw ? JSON.parse(raw) : {};
-      const items = Object.entries(all)
-        .filter(([_, list]) => Array.isArray(list) && list.some(m => m.senderId === currentUserId || m.receiverId === currentUserId))
-        .map(([conversationId, list]) => {
-          const lastMessage = list[list.length - 1];
-          const otherUserId = lastMessage
-            ? (lastMessage.senderId === currentUserId ? lastMessage.receiverId : lastMessage.senderId)
-            : conversationId.split("__").find((id) => id !== currentUserId) || "";
-          return {
-            conversationId,
-            otherUserId,
-            lastMessage,
-            unreadCount: unreadMap[conversationId] || 0,
-          };
-        });
-      // Sort by last message timestamp desc
-      return items.sort((a, b) => (b.lastMessage?.timestamp || 0) - (a.lastMessage?.timestamp || 0));
-    } catch {
-      return [];
-    }
-  }, [currentUserId, unreadMap, messages, open]);
+    const items = dbConversations.map((conversation) => ({
+      ...conversation,
+      unreadCount: unreadMap[conversation.conversationId] || 0,
+    }));
+
+    return items.sort((a, b) => (b.lastMessage?.timestamp || 0) - (a.lastMessage?.timestamp || 0));
+  }, [currentUserId, dbConversations, unreadMap]);
 
   // Update favicon red dot based on total unread
   useEffect(() => {
