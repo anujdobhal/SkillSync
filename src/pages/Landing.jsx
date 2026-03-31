@@ -360,18 +360,18 @@ export default function Landing() {
                   random teammates.
                 </span>
               </motion.h1>
-
+                
               <motion.p initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.6, delay:0.2 }}
                 style={{ fontSize:17, color:C.sub, lineHeight:1.75, maxWidth:420, marginBottom:36 }}>
                 SkillSync matches you with students by actual skills — not luck. Find your co-founder, hackathon squad, or project partner today.
               </motion.p>
-
+              
               <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.5, delay:0.3 }}
                 style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:40 }}>
                 <Btn onClick={() => go("/auth")} size="lg" icon={<ArrowRight size={16}/>}>Find my team</Btn>
                 <Btn onClick={() => scrollTo("how-it-works")} variant="ghost" size="lg">See how it works</Btn>
               </motion.div>
-
+                                    
               <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.5 }}
                 style={{ display:"flex", gap:24, flexWrap:"wrap" }}>
                 {[{ icon:<Users size={13}/>, text:"For college students" },{ icon:<Zap size={13}/>, text:"Skill-based matching" },{ icon:<Shield size={13}/>, text:"Free to use" }].map((item,i) => (
@@ -402,10 +402,10 @@ export default function Landing() {
           )}
         </div>
       </div>
-
+      
       {/* ── PROBLEM VS SOLUTION ── */}
       <ProblemSolution/>
-
+      
       {/* ── FEATURES ── */}
       <section id="features" style={{ padding:"90px 24px", background:C.surface }}>
         <div style={{ maxWidth:1100, margin:"0 auto" }}>
@@ -526,7 +526,7 @@ export default function Landing() {
           </div>
         </motion.div>
       </section>
-
+      
       {/* ── FOOTER ── */}
       <footer style={{ borderTop:`1px solid ${C.border}`, padding:"34px 24px" }}>
         <div className="fi" style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16 }}>

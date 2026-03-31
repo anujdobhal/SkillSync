@@ -72,6 +72,20 @@ const ProjectDetails = () => {
     setLoading(false);
   };
 
+  const handleRequestAction = async (memberId, action) => {
+    // action: 'accepted' or 'rejected'
+    const { error } = await supabase
+      .from("project_members")
+      .update({ status: action })
+      .eq("id", memberId);
+    if (!error) {
+      toast.success(`Request ${action}`);
+      await load(); // Refresh the list
+    } else {
+      toast.error("Something went wrong!");
+    }
+  };
+
   const requestJoin = async () => {
     if (!id || !userId) return;
     const { data: existing } = await supabase
@@ -211,6 +225,20 @@ const ProjectDetails = () => {
                       {pendingMembers.map((pm) => (
                         <div key={pm.id} className="flex items-center justify-between gap-2 mb-2 p-2 rounded hover:bg-accent/50">
                           <span className="text-sm flex-1">{pm.profile?.name}</span>
+                          <div className="flex gap-1">
+                            <button
+                              className="px-2 py-1 bg-green-600 text-white rounded text-xs"
+                              onClick={() => handleRequestAction(pm.id, 'accepted')}
+                            >
+                              Accept
+                            </button>
+                            <button
+                              className="px-2 py-1 bg-red-600 text-white rounded text-xs"
+                              onClick={() => handleRequestAction(pm.id, 'rejected')}
+                            >
+                              Reject
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
