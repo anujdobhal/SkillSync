@@ -73,5 +73,5 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 
 ## Team
 
-- Mentor: Ms. Sonali Gupta
+- Mentor: Ms. Stuti Bhatt
 - Contributors: Devansh Rawat, Anuj Kumar, Anuj Dobhal, Shalini Uniyal
