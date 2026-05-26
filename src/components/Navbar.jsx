@@ -1,22 +1,33 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, Sparkles, LogOut, User } from "lucide-react";
+import { Users, Sparkles, LogOut, User, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Notifications from "./Notifications";
 import { useChat } from "@/components/chat/ChatContext";
-import { MessageCircle } from "lucide-react";
+
 const Navbar = ({ isScrolled }) => {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const fetchUser = async (session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        const { data } = await supabase.from('profiles').select('is_admin').eq('user_id', session.user.id).single();
+        setIsAdmin(data?.is_admin || false);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetchUser(session);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      fetchUser(session);
     });
 
     return () => subscription.unsubscribe();
@@ -66,6 +77,11 @@ const Navbar = ({ isScrolled }) => {
               <Link to="/connections" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium hover:text-[var(--text-primary)] transition-colors">
                 Connections
               </Link>
+              {isAdmin && (
+                <Link to="/admin" style={{ color: 'var(--primary)' }} className="text-sm font-bold hover:opacity-80 transition-opacity">
+                  Admin Panel
+                </Link>
+              )}
             </>
           ) : (
             <>

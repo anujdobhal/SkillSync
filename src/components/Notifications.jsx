@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,14 @@ const Notifications = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [sessionUserId, setSessionUserId] = useState(null);
+  const prevIdsRef = useRef(new Set());
+  const [popup, setPopup] = useState(null);
 
   useEffect(() => {
     loadNotifications();
 
-    // Set up realtime subscription
+    // Set up realtime subscription - inspect payload to show immediate popup
     const channel = supabase
       .channel('notifications-changes')
       .on(
@@ -29,7 +32,16 @@ const Notifications = () => {
           schema: 'public',
           table: 'notifications'
         },
-        () => {
+        (payload) => {
+          // If payload contains a new notification for this user, show popup quickly
+          try {
+            const rec = payload?.record || payload?.new || payload?.data || null;
+            if (rec && sessionUserId && rec.user_id === sessionUserId && rec.type === 'mentor_meeting') {
+              if (!rec.is_read) setPopup({ title: rec.title, message: rec.message, link: rec.link });
+            }
+          } catch (e) {
+            // ignore
+          }
           loadNotifications();
         }
       )
@@ -43,6 +55,7 @@ const Notifications = () => {
   const loadNotifications = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
+    setSessionUserId(session.user.id);
 
     const { data } = await supabase
       .from("notifications")
@@ -52,6 +65,17 @@ const Notifications = () => {
       .limit(10);
 
     if (data) {
+      // detect newly arrived notifications since last load
+      const newItems = (data || []).filter(n => !prevIdsRef.current.has(n.id));
+      if (newItems.length > 0) {
+        newItems.forEach(n => {
+          if (n.type === 'mentor_meeting' && !n.is_read) {
+            setPopup({ title: n.title, message: n.message, link: n.link });
+          }
+        });
+      }
+      // update prev ids
+      prevIdsRef.current = new Set((data || []).map(d => d.id));
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.is_read).length);
     }
@@ -83,8 +107,41 @@ const Notifications = () => {
     await loadNotifications();
   };
 
+  const handlePopupView = async () => {
+    setPopup(null);
+    // mark notifications as read and navigate
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    await supabase.from('notifications').update({ is_read: true }).eq('user_id', session.user.id).eq('is_read', false);
+    // reload and go to notifications page
+    await loadNotifications();
+    navigate('/notifications');
+  };
+
+  const handlePopupDismiss = () => {
+    setPopup(null);
+  };
+
   return (
-    <Popover>
+    <>
+      {popup && (
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="max-w-xl w-full bg-primary/95 text-white p-4 rounded-lg shadow-lg border border-primary/70">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h4 className="text-lg font-bold">{popup.title}</h4>
+                <p className="text-sm mt-1">{popup.message}</p>
+              </div>
+              <div className="flex flex-col gap-2 ml-4">
+                <button onClick={handlePopupView} className="bg-white text-black px-3 py-1 rounded">View</button>
+                <button onClick={handlePopupDismiss} className="text-white px-3 py-1 rounded border border-white/30">Dismiss</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
@@ -150,6 +207,7 @@ const Notifications = () => {
         </ScrollArea>
       </PopoverContent>
     </Popover>
+    </>
   );
 };
 

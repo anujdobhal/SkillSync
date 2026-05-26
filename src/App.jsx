@@ -21,6 +21,7 @@ import ProjectDetails from "./pages/ProjectDetails";
 import Messages from "./pages/Messages";
 import Teams from "./pages/Teams";
 import Notifications from "./pages/Notifications";
+import Admin from "./pages/Admin";
 import { ChatProvider } from "./components/chat/ChatContext";
 import ChatDrawer from "./components/chat/ChatDrawer";
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/projects" element={<Projects />} />
             <Route path="/project/:id" element={<ProjectDetails />} />
             <Route path="/projects/:id" element={<ProjectDetails />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ChatDrawer />

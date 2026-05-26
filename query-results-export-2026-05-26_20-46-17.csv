@@ -1,0 +1,8 @@
+created_at;id;link;message;title;type;user_id
+2026-05-26 13:57:21.991347+00;4e9324cf-b918-4498-a2f5-1b151eeda0c7;/messages;devansh rawat sent you a message;New Message;new_message;07f66d47-1aa7-47b5-8c79-11b5117f70c2
+2026-05-26 13:57:03.294526+00;0efe3dad-1ea6-44dc-a7c8-76eb4a57cb4c;/messages;devansh rawat sent you a message;New Message;new_message;07f66d47-1aa7-47b5-8c79-11b5117f70c2
+2026-05-26 13:55:06.435826+00;eecb964c-ae9a-43ab-8ef3-2813ae6eaec4;/connections;devansh rawat sent you a connection request;New Connection Request;connection_request;07f66d47-1aa7-47b5-8c79-11b5117f70c2
+2026-05-26 11:32:38.090354+00;9fc6d0ba-dc98-4ce4-bb5e-78447760afd2;/project/e1564d31-d508-494e-94bc-eff98ec7f54e;"Alice sent a message in ""Test Project""";New Team Chat Message;project_chat;07f66d47-1aa7-47b5-8c79-11b5117f70c2
+2026-05-26 11:31:51.213389+00;f66cb5fc-371b-4cc0-871d-ed2124b106a9;/project/e1564d31-d508-494e-94bc-eff98ec7f54e;"Alice scheduled ""xys meeting"" for project ""Test Project""";New Meeting Scheduled;meeting_scheduled;07f66d47-1aa7-47b5-8c79-11b5117f70c2
+2026-05-26 11:27:28.322506+00;f415dd5c-0b7b-49eb-8e33-57ba9eea6681;/project/e1564d31-d508-494e-94bc-eff98ec7f54e;"Alice scheduled ""Kickoff Meeting"" for project ""Test Project""";New Meeting Scheduled;meeting_scheduled;07f66d47-1aa7-47b5-8c79-11b5117f70c2
+2026-05-26 10:54:48.485626+00;7a439bfb-3bb2-4f23-9f82-e89bcaa71e8a;/project/e1564d31-d508-494e-94bc-eff98ec7f54e;"Your request to join the project ""Test Project"" has been accepted!";Project Request Accepted 🎉;project_accepted;07f66d47-1aa7-47b5-8c79-11b5117f70c2

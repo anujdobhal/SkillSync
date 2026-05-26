@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MessageCircle, Image as ImageIcon, X, AlertCircle } from "lucide-react";
+import { Heart, MessageCircle, Image as ImageIcon, X, AlertCircle, Send, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getProfilePhotoUrl } from "@/lib/profile-photo";
@@ -29,6 +29,11 @@ const Dashboard = () => {
   const [postLikes, setPostLikes] = useState({});
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [postComments, setPostComments] = useState({});
+  const [commentInputs, setCommentInputs] = useState({});
+  const [expandedComments, setExpandedComments] = useState(new Set());
+  const [commentProfiles, setCommentProfiles] = useState({});
+  const [submittingComment, setSubmittingComment] = useState(null);
 
   useEffect(() => {
     checkAuth();
@@ -58,6 +63,18 @@ const Dashboard = () => {
           { event: '*', schema: 'public', table: 'posts' },
           () => {
             loadPosts();
+          }
+        )
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'post_likes' },
+          () => {
+            loadLikesAndComments();
+          }
+        )
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'post_comments' },
+          () => {
+            loadLikesAndComments();
           }
         )
         .subscribe();
@@ -212,18 +229,69 @@ const Dashboard = () => {
         }
       });
 
-      const likesMap = {};
-      transformedPosts.forEach(post => {
-        if (!postLikes[post.id]) {
-          likesMap[post.id] = 0;
-        }
-      });
-      setPostLikes(prev => ({ ...prev, ...likesMap }));
-
       setPosts(transformedPosts);
+      // Load likes and comments after posts are set
+      await loadLikesAndComments();
     } catch (error) {
       console.error("Error in loadPosts:", error);
       setPosts([]);
+    }
+  };
+
+  const loadLikesAndComments = async () => {
+    try {
+      // Fetch all likes
+      const { data: likesData, error: likesError } = await supabase
+        .from("post_likes")
+        .select("post_id, user_id");
+
+      if (!likesError && likesData) {
+        const likesCountMap = {};
+        const userLikedSet = new Set();
+        likesData.forEach(like => {
+          likesCountMap[like.post_id] = (likesCountMap[like.post_id] || 0) + 1;
+          if (like.user_id === currentUserId) {
+            userLikedSet.add(like.post_id);
+          }
+        });
+        setPostLikes(likesCountMap);
+        setLikedPosts(userLikedSet);
+      }
+
+      // Fetch all comments
+      const { data: commentsData, error: commentsError } = await supabase
+        .from("post_comments")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (!commentsError && commentsData) {
+        const commentsMap = {};
+        const userIds = new Set();
+        commentsData.forEach(comment => {
+          if (!commentsMap[comment.post_id]) {
+            commentsMap[comment.post_id] = [];
+          }
+          commentsMap[comment.post_id].push(comment);
+          userIds.add(comment.user_id);
+        });
+        setPostComments(commentsMap);
+
+        // Fetch profiles of commenters
+        if (userIds.size > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id, name, profile_photo_url, profile_photo_visible, hide_photo")
+            .in("user_id", Array.from(userIds));
+
+          if (profiles) {
+            const profileMap = {};
+            profiles.forEach(p => { profileMap[p.user_id] = p; });
+            setCommentProfiles(prev => ({ ...prev, ...profileMap }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading likes and comments:", error);
     }
   };
 
@@ -343,24 +411,91 @@ const Dashboard = () => {
     return date.toLocaleDateString();
   };
 
-  const handleLike = (postId) => {
+  const handleLike = async (postId) => {
+    if (!currentUserId) return;
+    const alreadyLiked = likedPosts.has(postId);
+
+    // Optimistic UI update
     setLikedPosts(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(postId)) {
-        newSet.delete(postId);
-        setPostLikes(prevLikes => ({
-          ...prevLikes,
-          [postId]: Math.max(0, (prevLikes[postId] || 0) - 1)
-        }));
-      } else {
-        newSet.add(postId);
-        setPostLikes(prevLikes => ({
-          ...prevLikes,
-          [postId]: (prevLikes[postId] || 0) + 1
-        }));
-      }
+      if (alreadyLiked) { newSet.delete(postId); } else { newSet.add(postId); }
       return newSet;
     });
+    setPostLikes(prev => ({
+      ...prev,
+      [postId]: alreadyLiked ? Math.max(0, (prev[postId] || 0) - 1) : (prev[postId] || 0) + 1
+    }));
+
+    try {
+      if (alreadyLiked) {
+        const { error } = await supabase
+          .from("post_likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", currentUserId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("post_likes")
+          .insert({ post_id: postId, user_id: currentUserId });
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      // Revert optimistic update
+      setLikedPosts(prev => {
+        const newSet = new Set(prev);
+        if (alreadyLiked) { newSet.add(postId); } else { newSet.delete(postId); }
+        return newSet;
+      });
+      setPostLikes(prev => ({
+        ...prev,
+        [postId]: alreadyLiked ? (prev[postId] || 0) + 1 : Math.max(0, (prev[postId] || 0) - 1)
+      }));
+      toast.error("Failed to update like");
+    }
+  };
+
+  const handleCommentSubmit = async (postId) => {
+    const content = (commentInputs[postId] || "").trim();
+    if (!content || !currentUserId) return;
+
+    setSubmittingComment(postId);
+    try {
+      const { error } = await supabase
+        .from("post_comments")
+        .insert({ post_id: postId, user_id: currentUserId, content });
+
+      if (error) throw error;
+
+      setCommentInputs(prev => ({ ...prev, [postId]: "" }));
+      // Expand comments section to show the new comment
+      setExpandedComments(prev => new Set(prev).add(postId));
+      await loadLikesAndComments();
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      toast.error("Failed to post comment");
+    } finally {
+      setSubmittingComment(null);
+    }
+  };
+
+  const handleDeleteComment = async (commentId, postId) => {
+    if (!currentUserId) return;
+    try {
+      const { error } = await supabase
+        .from("post_comments")
+        .delete()
+        .eq("id", commentId)
+        .eq("user_id", currentUserId);
+
+      if (error) throw error;
+      toast.success("Comment deleted");
+      await loadLikesAndComments();
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast.error("Failed to delete comment");
+    }
   };
 
   const handleDeletePost = async (postId) => {
@@ -583,11 +718,100 @@ const Dashboard = () => {
                         <span className="text-xs">{likesCount}</span>
                       </Button>
 
-                      <Button variant="ghost" size="sm" className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={() => setExpandedComments(prev => {
+                          const next = new Set(prev);
+                          if (next.has(post.id)) { next.delete(post.id); } else { next.add(post.id); }
+                          return next;
+                        })}
+                        style={{ color: expandedComments.has(post.id) ? 'var(--primary)' : 'var(--text-secondary)' }}
+                      >
                         <MessageCircle className="h-4 w-4" />
-                        <span className="text-xs">Comment</span>
+                        <span className="text-xs">
+                          {(postComments[post.id]?.length || 0) > 0 ? `${postComments[post.id].length} Comment${postComments[post.id].length > 1 ? 's' : ''}` : 'Comment'}
+                        </span>
                       </Button>
                     </div>
+
+                    {/* Comments Section */}
+                    {expandedComments.has(post.id) && (
+                      <div className="mt-3 pt-3 space-y-3" style={{ borderTopColor: 'var(--border)', borderTopWidth: '1px' }}>
+                        {/* Existing Comments */}
+                        {(postComments[post.id] || []).length > 0 && (
+                          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                            {(postComments[post.id] || []).map(comment => {
+                              const commenter = commentProfiles[comment.user_id];
+                              const isOwnComment = comment.user_id === currentUserId;
+                              const commenterName = isOwnComment ? 'You' : (commenter?.name || 'User');
+                              const commenterPhoto = commenter?.profile_photo_url && !commenter?.hide_photo ? commenter.profile_photo_url : null;
+
+                              return (
+                                <div key={comment.id} className="flex items-start gap-2 group">
+                                  <Avatar className="h-7 w-7 flex-shrink-0">
+                                    {commenterPhoto && <AvatarImage src={commenterPhoto} alt={commenterName} />}
+                                    <AvatarFallback style={{ fontSize: '0.65rem' }}>{commenterName.charAt(0).toUpperCase()}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 rounded-lg p-2" style={{ backgroundColor: 'var(--bg-primary)' }}>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{commenterName}</span>
+                                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{formatTimeAgo(comment.created_at)}</span>
+                                    </div>
+                                    <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{comment.content}</p>
+                                  </div>
+                                  {isOwnComment && (
+                                    <button
+                                      onClick={() => handleDeleteComment(comment.id, post.id)}
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-500/10"
+                                      title="Delete comment"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" style={{ color: 'var(--error)' }} />
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Comment Input */}
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-7 w-7 flex-shrink-0">
+                            <AvatarImage src={profile && getProfilePhotoUrl(profile, currentUserId, currentUserId)} alt={profile?.name} />
+                            <AvatarFallback style={{ fontSize: '0.65rem' }}>{profile?.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 flex items-center gap-2 rounded-lg p-1.5" style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border)' }}>
+                            <input
+                              type="text"
+                              placeholder="Write a comment..."
+                              value={commentInputs[post.id] || ""}
+                              onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleCommentSubmit(post.id);
+                                }
+                              }}
+                              className="flex-1 bg-transparent text-sm outline-none px-2"
+                              style={{ color: 'var(--text-primary)' }}
+                              disabled={submittingComment === post.id}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCommentSubmit(post.id)}
+                              disabled={!(commentInputs[post.id] || "").trim() || submittingComment === post.id}
+                              className="h-7 w-7 p-0"
+                              style={{ color: 'var(--primary)' }}
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -33,6 +33,47 @@ const Sidebar = ({ onClose }) => {
     loadUser();
   }, []);
 
+  // ===== REAL-TIME NOTIFICATION LISTENER =====
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnread = async () => {
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+      if (!error) {
+        setUnreadCounts(prev => ({ ...prev, notifications: count || 0 }));
+      }
+    };
+    fetchUnread();
+
+    const channel = supabase
+      .channel('sidebar-notifications')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const notif = payload.new;
+          // Increment badge count
+          setUnreadCounts(prev => ({ ...prev, notifications: (prev.notifications || 0) + 1 }));
+          // Show flash toast message
+          toast.info(notif.title || 'New Notification', {
+            description: notif.message || '',
+            duration: 6000,
+            action: notif.link ? { label: 'View', onClick: () => { window.location.href = notif.link; } } : undefined,
+          });
+        }
+      )
+      .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        () => { fetchUnread(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const loadUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -72,7 +113,6 @@ const Sidebar = ({ onClose }) => {
     { label: 'Connections', icon: Users, path: '/connections', badge: null },
     { label: 'Messages', icon: MessageSquare, path: '/messages', badge: 'messages' },
     { label: 'Mentors', icon: GraduationCap, path: '/mentors', badge: null },
-    { label: 'Teams', icon: UsersRound, path: '/teams', badge: null },
     { label: 'Notifications', icon: Bell, path: '/notifications', badge: 'notifications' },
   ];
 

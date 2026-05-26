@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,8 @@ const Messages = () => {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  const location = useLocation();
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -94,6 +96,16 @@ const Messages = () => {
       toast.error('Failed to load messages');
     }
   };
+
+  // If the page was opened with a `user` query param, auto-open that conversation
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const otherId = params.get('user');
+    if (otherId && user) {
+      // avoid double-loading if already selected
+      if (selectedConversation !== otherId) handleSelectConversation(otherId);
+    }
+  }, [location.search, user]);
 
   const handleSendMessage = async () => {
     if (!messageInput.trim()) return;
