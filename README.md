@@ -91,7 +91,3 @@ App URL: http://localhost:8080
 - npm run preview - Preview production build
 - npm run lint - Run ESLint
 
-## Ownership
-
-- Maintainer: Devansh Rawat
-- Mentor: Ms. Stuti Bhatt
